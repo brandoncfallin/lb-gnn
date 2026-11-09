@@ -1,5 +1,4 @@
 .log
-*.gif
 .DS_Store
 *.aux
 *.bbl
@@ -7,4 +6,8 @@
 *.dvi
 *.log
 *.toc
-code/tempCodeRunnerFile.py
+*.pkl
+*.csv
+*.pyc
+src/lb_gnn/tempCodeRunnerFile.py
+src/lb_gnn.egg-info/*
