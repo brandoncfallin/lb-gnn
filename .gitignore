@@ -1,0 +1,11 @@
+.log
+*.gif
+.DS_Store
+*.aux
+*.bbl
+*.blg
+*.dvi
+*.log
+*.toc
+code/tempCodeRunnerFile.py
+*.png
