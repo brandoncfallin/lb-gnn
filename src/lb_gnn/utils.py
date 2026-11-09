@@ -1,17 +1,6 @@
-import multiprocessing
-import os
-
-import imageio
-import jax
 import jax.numpy as jnp
 import numpy as np
-import tqdm
-from jax import grad, jacfwd, jacrev
-from jax.flatten_util import ravel_pytree
-from jax.typing import ArrayLike, DTypeLike
 from numpy.typing import NDArray
-from setup import Config
-from simulation import Simulation
 
 
 # dict update
@@ -25,6 +14,7 @@ def update_dictionaries(dest: dict, src: dict) -> None:
     Returns:
         None: The destination dictionary is updated in place
     """
+
     dest.update(src)
 
 
@@ -39,6 +29,7 @@ def kron_eye_A(arr: NDArray, num: int) -> NDArray:
     Returns:
         result: The Kronecker product I ⊗ A
     """
+
     rows, cols = arr.shape
     result = np.zeros((num, rows, num, cols), dtype=arr.dtype)
     diag = np.einsum("ijik->ijk", result)
@@ -57,6 +48,7 @@ def kron_A_eye(arr: NDArray, num: int) -> NDArray:
     Returns:
         result: The Kronecker product A ⊗ I
     """
+
     rows, cols = arr.shape
     result = np.zeros((rows, num, cols, num), dtype=arr.dtype)
     r = np.arange(num)
@@ -190,6 +182,7 @@ def kronecker_delta(a: int, b: int) -> int:
     Returns:
         1 if a == b, else 0
     """
+
     if a == b:
         return 1
     else:
@@ -205,6 +198,7 @@ def rnd_result(input_vals: list[np.float64]) -> list[float]:
     Returns:
         list[float]: Rounded values
     """
+
     return [round(float(val), 3) for val in input_vals]
 
 

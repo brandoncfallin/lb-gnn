@@ -1,22 +1,22 @@
-import copy
 import time
+from typing import Callable
 
 import jax
 import jax.numpy as jnp
 import numpy as np
 
-import utils
-from entity import Agent, Target
-from nn import NeuralNetwork
-from passes import build_jacobian_map, dnn_forward, gnn_forward
-from setup import Config
-from weights import (
+from . import utils
+from .entity import Agent, Target
+from .nn import NeuralNetwork
+from .passes import build_jacobian_map, dnn_forward, gnn_forward
+from .setup import Config
+from .weights import (
     build_gamma_matrix,
     flatten_all_weights,
     initialize_weights,
     unflatten_all_weights,
 )
-from typing import Callable
+
 
 class Simulation:
     def __init__(self, config: Config):
@@ -56,7 +56,7 @@ class Simulation:
         )
         self.label = ""
 
-    def initialize_agents(self) -> tuple[list[Agent],Target]:
+    def initialize_agents(self) -> tuple[list[Agent], Target]:
         """
         Arranges agents in an N-gon od radius 10 and creates all Agent objects
 
@@ -99,7 +99,11 @@ class Simulation:
                 agents[j].neighbors[i] = agents[i]  # add to dict
         return agents, target
 
-    def initialize_nns(self) -> tuple[dict,dict,np.ndarray,np.ndarray,np.ndarray,np.ndarray,Callable,Callable]:
+    def initialize_nns(
+        self,
+    ) -> tuple[
+        dict, dict, np.ndarray, np.ndarray, np.ndarray, np.ndarray, Callable, Callable
+    ]:
         """
         Generates weights and adaptation gains for the observer and controller NNs
 
@@ -134,24 +138,20 @@ class Simulation:
 
         # initialize NN jacobian maps
         nn_1_jacobian_map = build_jacobian_map(
-            forward_pass=dnn_forward
-            if self.config.nn_1_type == "dnn"
-            else gnn_forward,  
+            forward_pass=dnn_forward if self.config.nn_1_type == "dnn" else gnn_forward,
             adjacency_matrix=jnp.array(self.adjacency_matrix),
             augmented_adjacency_matrix=jnp.array(self.augmented_adjacency_matrix),
             num_agents=self.config.num_agents,
             input_dim=self.config.nn_1_num_inputs,
-            is_graph_valued=False,  
+            is_graph_valued=False,
         )
         nn_2_jacobian_map = build_jacobian_map(
-            forward_pass=dnn_forward
-            if self.config.nn_2_type == "dnn"
-            else gnn_forward,  
+            forward_pass=dnn_forward if self.config.nn_2_type == "dnn" else gnn_forward,
             adjacency_matrix=jnp.array(self.adjacency_matrix),
             augmented_adjacency_matrix=jnp.array(self.augmented_adjacency_matrix),
             num_agents=self.config.num_agents,
             input_dim=self.config.nn_2_num_inputs,
-            is_graph_valued=True,  
+            is_graph_valued=True,
         )
 
         # flatten weights for assignment
@@ -185,6 +185,7 @@ class Simulation:
 
         Returns: None
         """
+
         # initialize NNs
         for agent_idx in range(self.config.num_agents):
             self.agents[agent_idx].nn_1 = NeuralNetwork(
@@ -220,9 +221,8 @@ class Simulation:
 
         Returns: None
         """
-        start = time.time()
 
-        print(f"num_weights: {self.config.nn_1_num_weights}")
+        start = time.time()
 
         for i in range(1, self.config.time_steps):
             self.update_sim(step=i)
@@ -249,6 +249,7 @@ class Simulation:
         Returns:
             None: Updates all necessary objects in place
         """
+
         self.target.update_plant(step=step)
 
         for agent in self.agents:

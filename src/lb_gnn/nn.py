@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 
-from weights import proj
+from .weights import proj
 
 
 class NeuralNetwork:

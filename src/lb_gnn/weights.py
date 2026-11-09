@@ -1,5 +1,3 @@
-from typing import Optional
-
 import jax
 import jax.numpy as jnp
 import numpy as np
@@ -12,7 +10,7 @@ from scipy.linalg import block_diag
 # recall that gnn arch is of the form
 # mlp_outer(x_{i,k-1} + \sum_{j \in N_1} mlp_inner(x_{j,k-1}))
 
-# all dnn weights will be tossed into mlp_inner
+# all dnn weights are placed into mlp_inner
 # layers go in ascending order (inside out)
 # construct dict of dicts of the form
 # message_passing_layer_0 = {
@@ -41,6 +39,7 @@ def initialize_weights(
     Returns:
         dict: Dictionary with keys of message passing layers indexed from 0 and values of dictionaries containing weights for each layer
     """
+
     # glorot initialization
     # make blank dict to populate
     nn_weights = {}
@@ -237,6 +236,7 @@ def unflatten_all_weights(
     Returns:
         dict: Dictionary containing weight values for each message passing layer
     """
+
     nn_weights_jax = jnp.asarray(nn_weights_array)
     nn_weights_dict = {}
     idx = 0

@@ -101,6 +101,7 @@ class Config:
         Returns:
             None: Updates values in place
         """
+
         self.nn_1_schema = self.create_nn_schema(
             nn_type=self.nn_1_type,
             is_graph_valued=False,
@@ -144,6 +145,7 @@ class Config:
         Returns:
             list[tuple[int,int]]: List of (input_dim,output_dim) tuples for each MLP layer
         """
+
         assert num_mlp_layers >= 2, (
             "num_mlp_layers must be at least 2 (one hidden + one output)"
         )
@@ -183,6 +185,7 @@ class Config:
             num_outputs (int): Number of outputs of MLP
             num_agents (int): Number of agents in MAS
         """
+
         assert nn_type == "dnn" or nn_type == "gnn", "nn_type must be 'dnn' or 'gnn'"
         nn_schema = {}
         if nn_type == "dnn":
@@ -264,6 +267,7 @@ class Config:
         Returns:
             int: Total number of tunable parameters
         """
+
         num_weights = 0
         for message_passing_layer_idx in nn_schema.keys():
             # mlp_inner always exists
@@ -286,6 +290,7 @@ class Config:
         Returns:
             int: Number of tunable parameters in output layer
         """
+
         if nn_type == "dnn":
             # get last entry from first mpl
             size_tuple = nn_schema[0]["mlp_inner"][-1]

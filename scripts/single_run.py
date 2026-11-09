@@ -2,13 +2,14 @@ import copy
 import os
 
 import numpy as np
-from results import display_results, pickle_results
-from setup import Config
-from simulation import Simulation
+
+from lb_gnn.results import pickle_results
+from lb_gnn.setup import Config
+from lb_gnn.simulation import Simulation
 
 if __name__ == "__main__":
     # env vars for running many sims
-    topology = os.getenv("TOPOLOGY", "star")
+    topology = os.getenv("TOPOLOGY", "ring")
     trial_number = int(os.getenv("TRIAL_NUMBER", "0"))
     num_agents = int(os.getenv("NUM_AGENTS", "6"))
 
@@ -16,9 +17,9 @@ if __name__ == "__main__":
     run_dnn = True
     run_gnn = True
     # save results
-    save_results = False
-    data_dir = "data/"
-    fig_dir = "figures/"
+    save_results = True
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    data_dir = os.path.join(base_dir, "data")
 
     # global settings
     global_config = Config(
@@ -46,7 +47,7 @@ if __name__ == "__main__":
         # global neural network settings
         num_neurons_per_layer=8,
         num_mlp_layers=2,
-        num_message_passing_layers=2,
+        num_message_passing_layers=2,  # placeholder, update for each architecture
         same_weights_at_each_agent=False,
         # neural network 1 settings (for observer)
         nn_1_num_inputs=6,
@@ -66,9 +67,9 @@ if __name__ == "__main__":
     dnn_config = copy.deepcopy(global_config)
     dnn_config.nn_1_type = "dnn"
     dnn_config.nn_2_type = "dnn"
-    dnn_config.num_message_passing_layers = 1  # DONT FORGET YOU MADE THIS CHANGE
-    dnn_config.num_mlp_layers = 8  # DONT FORGET YOU MADE THIS CHANGE
-    dnn_config.num_neurons_per_layer = 8  # DONT FORGET YOU MADE THIS CHANGE
+    dnn_config.num_message_passing_layers = 1
+    dnn_config.num_mlp_layers = 8
+    dnn_config.num_neurons_per_layer = 8
     dnn_config.rng = np.random.default_rng(seed=global_config.weight_seed)
     dnn_config.initialize_nn_schemas()
     dnn_simulation = Simulation(dnn_config)
@@ -90,20 +91,11 @@ if __name__ == "__main__":
         results_list[i] for i in range(len(results_list)) if results_list_bool[i]
     ]
 
-    if len(results_list) != 0 and not save_results:
-        # run indicated sims
-        for simulation in results_list:
-            print(
-                f"Running {simulation.label} simulation with topology: {topology}, number of agents: {num_agents}"
-            )
-            simulation.run()
-        # plot results
-        display_results(simulations=results_list, fig_dir=fig_dir, show_plot=True)
-
-    elif len(results_list) != 0 and save_results:
+    if len(results_list) != 0:
         # run indicated sims
         for simulation in results_list:
             simulation.run()
         # pickle results
-        pickle_results(results_list, data_dir)
-        print(f"Results saved for {simulation.config.topology} topology.")
+        if save_results:
+            pickle_results(results_list, data_dir)
+            print(f"Results saved for {topology} topology.")

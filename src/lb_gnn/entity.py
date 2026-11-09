@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 import numpy as np
-import utils
 
 if TYPE_CHECKING:
     from nn import NeuralNetwork
 
 from numpy.typing import NDArray
-from setup import Config
+
+from .setup import Config
 
 
 class Entity(ABC):
@@ -25,6 +25,14 @@ class Entity(ABC):
     def dynamics(self, step: int) -> np.ndarray: ...
 
     def update_plant(self, step: int) -> None:
+        """
+        Update plant accleration, velocity, and position using Euler integration
+
+        Args:
+            step (int): Current time step
+        Returns:
+            None
+        """
         self.accelerations[:, step] = self.dynamics(step)
         self.velocities[:, step] = (
             self.velocities[:, step - 1] + self.dt * self.accelerations[:, step]
@@ -45,7 +53,7 @@ class Agent(Entity):
         is_pinned: bool,
     ):
         # global params
-        super().__init__(initial_pos, initial_vel, config)  # TO-DO: assign args here
+        super().__init__(initial_pos, initial_vel, config)
         self.neighbors = {}
         self.config = config
         self.target = target

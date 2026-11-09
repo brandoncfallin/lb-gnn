@@ -2,7 +2,6 @@ from typing import Callable
 
 import jax
 import jax.numpy as jnp
-import numpy as np
 
 
 def mlp(weights_list: list, input: jnp.ndarray) -> jnp.ndarray:
@@ -86,7 +85,7 @@ def gnn_forward(
         num_agents (int): Unused; for parity with dnn_forward
         input_dim (int): Unused; for parity with dnn_forward
         is_graph_valued (bool): Unused; for parity with dnn_forward
-    
+
     Returns:
         jnp.ndarray: GNN output
     """

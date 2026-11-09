@@ -5,12 +5,14 @@ import sys
 import time
 from datetime import datetime
 
-TOPOLOGY = "complete"
-NUM_TRIALS = 50
+TOPOLOGY = "star"
+NUM_TRIALS = 2
 LAST_TRIAL_NUM = 0
 
 # set up logging
-os.makedirs("logs", exist_ok=True)
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+logs_dir = os.path.join(base_dir, "logs")
+os.makedirs(logs_dir, exist_ok=True)
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(message)s",
@@ -18,6 +20,7 @@ logging.basicConfig(
         logging.FileHandler(f"logs/average_runs_{TOPOLOGY}.log"),
         logging.StreamHandler(sys.stdout),
     ],
+    force=True,
 )
 
 
@@ -37,8 +40,10 @@ def run_simulation(topology: str, trial_num: int):
         logging.info(f"Starting trial {trial_num} for topology: {topology}")
         start_time = time.time()
 
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        scripts_dir = os.path.join(base_dir, "scripts")
         result = subprocess.run(
-            [sys.executable, "main.py"],
+            [sys.executable, os.path.join(scripts_dir, "single_run.py")],
             env={
                 "TOPOLOGY": topology,
                 "TRIAL_NUMBER": str(trial_num),
