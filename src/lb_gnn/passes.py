@@ -124,8 +124,6 @@ def gnn_forward(
 # returns a map from (features, weights_dict) -> (outputs, jacobian)
 def build_jacobian_map(
     forward_pass: Callable,
-    adjacency_matrix: jnp.ndarray,
-    augmented_adjacency_matrix: jnp.ndarray,
     num_agents: int,
     input_dim: int,
     is_graph_valued: bool,
@@ -146,7 +144,12 @@ def build_jacobian_map(
     """
 
     @jax.jit
-    def jacobian_map(global_feature_matrix: jnp.ndarray, nn_weights_dict: jnp.ndarray):
+    def jacobian_map(
+        global_feature_matrix: jnp.ndarray,
+        adjacency_matrix: jnp.ndarray,
+        augmented_adjacency_matrix: jnp.ndarray,
+        nn_weights_dict: dict,
+    ):
         global_output = forward_pass(
             global_feature_matrix=global_feature_matrix,
             nn_weights_dict=nn_weights_dict,

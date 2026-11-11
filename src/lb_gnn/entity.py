@@ -55,6 +55,7 @@ class Agent(Entity):
         # global params
         super().__init__(initial_pos, initial_vel, config)
         self.neighbors = {}
+        self.neighbor_sets: dict[int, dict[int, Agent]] = {}
         self.config = config
         self.target = target
         self.node_id = node_id
@@ -100,6 +101,9 @@ class Agent(Entity):
         # gradient management
         self.nn_1_gradient_correction: NDArray
         self.nn_2_gradient_correction: NDArray
+
+    def set_mode(self, current_mode: int) -> None:
+        self.neighbors = self.neighbor_sets[current_mode]
 
     def measure(self, step: int) -> None:
         """

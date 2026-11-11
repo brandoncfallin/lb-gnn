@@ -130,12 +130,8 @@ if __name__ == "__main__":
     # global variables
     # specify which topologies you wish to process
     topologies = [
-        "acyclic",
-        "complete",
-        "path",
-        "ring",
-        "star",
-    ]  # "acyclic", "complete", "path", "ring", "star"
+        "switching"
+    ]  # "acyclic", "complete", "path", "ring", "star" "switching"
     architectures = ["DNN", "GNN"]
     metrics = [
         "rms_position_error",

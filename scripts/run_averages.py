@@ -5,8 +5,8 @@ import sys
 import time
 from datetime import datetime
 
-TOPOLOGY = "star"
-NUM_TRIALS = 2
+TOPOLOGY = "switching"
+NUM_TRIALS = 10
 LAST_TRIAL_NUM = 0
 
 # set up logging

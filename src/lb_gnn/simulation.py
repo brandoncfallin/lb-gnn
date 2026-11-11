@@ -22,18 +22,33 @@ class Simulation:
     def __init__(self, config: Config):
         self.config = config
         self.trial_number = config.trial_number  # for repeat trials
+        self.current_switching_mode = self.get_switching_mode(
+            current_step=0, switching_steps=self.config.switching_steps
+        )
         # init schemas
         self.pinning_vector = utils.make_pin(
             num_agents=self.config.num_agents, pinned_agents=self.config.pinned_agents
         )
-        self.edge_set = utils.make_edge_set(
-            num_agents=self.config.num_agents, topology=self.config.topology
-        )
-        self.adjacency_matrix, self.augmented_adjacency_matrix = (
-            utils.make_adjacency_matrix(
-                num_agents=self.config.num_agents, edge_set=self.edge_set
+        self.adjacency_matrix_modes = {}
+        self.augmented_adjacency_matrix_modes = {}
+        if self.config.topology != "switching":
+            self.edge_set = utils.make_edge_set(
+                num_agents=self.config.num_agents, topology=self.config.topology
             )
-        )
+            self.adjacency_matrix_modes[0], self.augmented_adjacency_matrix_modes[0] = (
+                utils.make_adjacency_matrix(
+                    num_agents=self.config.num_agents, edge_set=self.edge_set
+                )
+            )
+        else:
+            for edge_set in self.config.switching_edge_sets.keys():
+                (
+                    self.adjacency_matrix_modes[edge_set],
+                    self.augmented_adjacency_matrix_modes[edge_set],
+                ) = utils.make_adjacency_matrix(
+                    num_agents=self.config.num_agents,
+                    edge_set=self.config.switching_edge_sets[edge_set],
+                )
         self.agents, self.target = self.initialize_agents()
         # nn data storage
         (
@@ -56,6 +71,16 @@ class Simulation:
         )
         self.label = ""
 
+    @staticmethod
+    def get_switching_mode(
+        current_step: int, switching_steps: list[tuple[int, int]]
+    ) -> int:
+        for switch_step, mode in reversed(switching_steps):
+            if switch_step <= current_step:
+                return mode
+
+        raise ValueError("Current switching mode not found")
+
     def initialize_agents(self) -> tuple[list[Agent], Target]:
         """
         Arranges agents in an N-gon od radius 10 and creates all Agent objects
@@ -65,6 +90,7 @@ class Simulation:
         Returns:
             tuple[list[Agent],Target]: Tuple containing a list of Agents in ascending order of index and single Target object
         """
+
         # arrange agents in N-gon, radius 10
         radius = 3
         angles = np.linspace(0, 2 * np.pi, self.config.num_agents, endpoint=False)
@@ -94,9 +120,19 @@ class Simulation:
             for i in range(self.config.num_agents)
         ]
         # construct neighbors dict for each agent
-        for i, j in self.edge_set:
-            if i != j:  # Only add if not self
-                agents[j].neighbors[i] = agents[i]  # add to dict
+        if self.config.topology != "switching":
+            for i, j in self.edge_set:
+                if i != j:  # Only add if not self
+                    agents[j].neighbors[i] = agents[i]  # add to dict
+        else:
+            for mode, edges in self.config.switching_edge_sets.items():
+                for agent in agents:
+                    agent.neighbor_sets[mode] = {}
+                for i, j in edges:
+                    if i != j:
+                        agents[j].neighbor_sets[mode][i] = agents[i]
+            for agent in agents:
+                agent.set_mode(current_mode=self.current_switching_mode)
         return agents, target
 
     def initialize_nns(
@@ -139,16 +175,12 @@ class Simulation:
         # initialize NN jacobian maps
         nn_1_jacobian_map = build_jacobian_map(
             forward_pass=dnn_forward if self.config.nn_1_type == "dnn" else gnn_forward,
-            adjacency_matrix=jnp.array(self.adjacency_matrix),
-            augmented_adjacency_matrix=jnp.array(self.augmented_adjacency_matrix),
             num_agents=self.config.num_agents,
             input_dim=self.config.nn_1_num_inputs,
             is_graph_valued=False,
         )
         nn_2_jacobian_map = build_jacobian_map(
             forward_pass=dnn_forward if self.config.nn_2_type == "dnn" else gnn_forward,
-            adjacency_matrix=jnp.array(self.adjacency_matrix),
-            augmented_adjacency_matrix=jnp.array(self.augmented_adjacency_matrix),
             num_agents=self.config.num_agents,
             input_dim=self.config.nn_2_num_inputs,
             is_graph_valued=True,
@@ -250,6 +282,20 @@ class Simulation:
             None: Updates all necessary objects in place
         """
 
+        if (
+            self.get_switching_mode(
+                current_step=step, switching_steps=self.config.switching_steps
+            )
+            != self.current_switching_mode
+        ):
+            # mode change
+            self.current_switching_mode = self.get_switching_mode(
+                current_step=step, switching_steps=self.config.switching_steps
+            )
+            # set mode on all agents
+            for agent in self.agents:
+                agent.set_mode(current_mode=self.current_switching_mode)
+
         self.target.update_plant(step=step)
 
         for agent in self.agents:
@@ -265,6 +311,8 @@ class Simulation:
                 num_agents=self.config.num_agents,
                 nn_purpose="observer",
             ),
+            self.adjacency_matrix_modes[self.current_switching_mode],
+            self.augmented_adjacency_matrix_modes[self.current_switching_mode],
             self.nn_1_weights_dict,
         )
 
@@ -337,6 +385,8 @@ class Simulation:
                 num_agents=self.config.num_agents,
                 nn_purpose="controller",
             ),
+            self.adjacency_matrix_modes[self.current_switching_mode],
+            self.augmented_adjacency_matrix_modes[self.current_switching_mode],
             self.nn_2_weights_dict,
         )
 

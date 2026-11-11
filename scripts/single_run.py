@@ -9,7 +9,7 @@ from lb_gnn.simulation import Simulation
 
 if __name__ == "__main__":
     # env vars for running many sims
-    topology = os.getenv("TOPOLOGY", "ring")
+    topology = os.getenv("TOPOLOGY", "switching")
     trial_number = int(os.getenv("TRIAL_NUMBER", "0"))
     num_agents = int(os.getenv("NUM_AGENTS", "6"))
 
@@ -20,6 +20,12 @@ if __name__ == "__main__":
     save_results = True
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     data_dir = os.path.join(base_dir, "data")
+
+    # edge sets
+    mode_0 = [(0, 1), (1, 0), (0, 5), (5, 0)]
+    mode_1 = [(1, 2), (2, 1), (2, 3), (3, 2), (2, 5), (5, 2)]
+    mode_2 = [(1, 4), (4, 1), (2, 3), (3, 2), (3, 4), (4, 3)]
+    mode_3 = [(0, 2), (2, 0), (2, 4), (4, 2), (0, 5), (5, 0), (4, 5), (5, 4)]
 
     # global settings
     global_config = Config(
@@ -32,6 +38,13 @@ if __name__ == "__main__":
         num_agents=num_agents,
         topology=topology,  # ring, star, path, complete, acyclic
         pinned_agents=[0, 2, 4],  # which agents can measure target states
+        # switching
+        switching_rng=np.random.default_rng(seed=100),
+        mode_lower_bound=0.01,
+        mode_upper_bound=0.1,
+        block_upper_bound=8,
+        switching_mode_order=[0, 3, 1, 2],
+        switching_edge_sets={0: mode_0, 1: mode_1, 2: mode_2, 3: mode_3},
         # gains
         observer_gain=25,
         controller_gain=25.5,

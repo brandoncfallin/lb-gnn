@@ -1,5 +1,8 @@
+from math import ceil
+
 import jax.numpy as jnp
 import numpy as np
+from numpy.random import Generator
 from numpy.typing import NDArray
 
 
@@ -111,7 +114,7 @@ def make_adjacency_matrix(
     return adjacency_matrix, augmented_adjacency_matrix
 
 
-# make edge set
+# make edge set. not needed for switching
 def make_edge_set(num_agents: int, topology: str) -> list[tuple[int, int]]:
     """
     Given a desired graph topology and number of agents, create the corresponding
@@ -131,8 +134,9 @@ def make_edge_set(num_agents: int, topology: str) -> list[tuple[int, int]]:
             edge_set.add(((i + 1) % num_agents, i))
     elif topology == "star":
         for i in range(num_agents):
-            edge_set.add((2, i))
-            edge_set.add((i, 2))
+            if i != 2:
+                edge_set.add((2, i))
+                edge_set.add((i, 2))
     elif topology == "path":
         for i in range(num_agents - 1):
             edge_set.add((i, i + 1))
@@ -168,6 +172,8 @@ def make_edge_set(num_agents: int, topology: str) -> list[tuple[int, int]]:
 
             current_level = next_level
             children_count += 1
+    elif topology == "switching":
+        edge_set = []
 
     return list(edge_set)
 
@@ -252,3 +258,55 @@ def get_all_k_hop_neighbors(
             node_index=node_index, k=k, adjacency_matrix=adjacency_matrix
         )
     return neighbors_by_layer
+
+
+def construct_switching_steps(
+    dt: float,
+    tf: float,
+    mode_lower_bound: float,
+    mode_upper_bound: float,
+    block_upper_bound: float,
+    switching_mode_order: list[int],
+    rng: Generator,
+) -> list[tuple[int, int]]:
+    """
+    TO-DO: add docstring
+    """
+
+    if len(switching_mode_order) * mode_upper_bound > block_upper_bound:
+        raise ValueError(
+            "Upper bound on switching block must be >= num_switching_modes * mode_upper_bound"
+        )
+    if len(switching_mode_order) == 0:
+        raise ValueError("Length of switching mode list must be > 0")
+    if mode_upper_bound < mode_lower_bound:
+        raise ValueError("mode_upper_bound must be >= mode_lower_bound")
+    if mode_lower_bound <= 0:
+        raise ValueError("mode_lower_bound must be > 0.0")
+
+    switching_steps_modes = []
+    current_time = 0.0
+    current_mode_index = 0
+    switching_steps_modes.append((0, switching_mode_order[current_mode_index]))
+    while current_time < tf:
+        next_time = current_time + rng.uniform(
+            low=mode_lower_bound, high=mode_upper_bound
+        )
+
+        if next_time >= tf:
+            break
+
+        next_mode_index = (current_mode_index + 1) % len(switching_mode_order)
+
+        switching_steps_modes.append(
+            (ceil(next_time / dt), switching_mode_order[next_mode_index])
+        )
+
+        current_time = next_time
+        current_mode_index = next_mode_index
+
+    switching_steps_modes.append(
+        (int(tf / dt), switching_mode_order[current_mode_index])
+    )
+
+    return switching_steps_modes

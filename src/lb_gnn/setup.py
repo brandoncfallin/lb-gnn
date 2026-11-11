@@ -1,7 +1,10 @@
 from typing import Optional
 
 import numpy as np
+from numpy.random import Generator
 from numpy.typing import NDArray
+
+from .utils import construct_switching_steps
 
 
 class Config:
@@ -14,8 +17,15 @@ class Config:
         dt: float,
         tf: float,
         num_agents: int,
-        topology: str,  # ring, star, path, complete, acyclic
-        pinned_agents: list[int],
+        topology: str,  # ring, star, path, complete, acyclic, switching
+        pinned_agents: list[int],  # stay constant
+        # switching
+        switching_rng: Generator,
+        mode_lower_bound: float,
+        mode_upper_bound: float,
+        block_upper_bound: float,
+        switching_mode_order: list[int],
+        switching_edge_sets: dict[int, list[tuple[int, int]]],
         # gains
         observer_gain: float,
         controller_gain: float,
@@ -56,6 +66,22 @@ class Config:
         self.num_agents = num_agents
         self.topology = topology
         self.pinned_agents = pinned_agents
+        # switching
+        self.switching_rng = switching_rng
+        self.mode_lower_bound = mode_lower_bound
+        self.mode_upper_bound = mode_upper_bound
+        self.block_upper_bound = block_upper_bound
+        self.switching_mode_order = switching_mode_order
+        self.switching_edge_sets = switching_edge_sets
+        self.switching_steps = construct_switching_steps(
+            dt=dt,
+            tf=tf,
+            mode_lower_bound=mode_lower_bound,
+            mode_upper_bound=mode_upper_bound,
+            block_upper_bound=block_upper_bound,
+            switching_mode_order=switching_mode_order,
+            rng=switching_rng,
+        )
         # gains
         self.observer_gain = observer_gain
         self.controller_gain = controller_gain
