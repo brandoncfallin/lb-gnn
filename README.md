@@ -38,3 +38,15 @@ python scripts/process_data.py
 ```
 
 The script `scripts/process_data.py` saves a `.csv` file with information from each run to `/data`
+
+## Attribution
+
+If you use this code for your project, please cite 
+```
+@article{Fallin.Nino.ea2025,
+  title={Lyapunov-based graph neural networks for adaptive control of multi-agent systems},
+  author={Fallin, Brandon C and Nino, Cristian F and Patil, Omkar Sudhir and Bell, Zachary I and Dixon, Warren E},
+  journal={arXiv preprint arXiv:2503.15360},
+  year={2025}
+}
+```
