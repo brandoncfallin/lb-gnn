@@ -6,7 +6,7 @@ import time
 from datetime import datetime
 
 TOPOLOGY = "star"
-NUM_TRIALS = 2
+NUM_TRIALS = 50
 LAST_TRIAL_NUM = 0
 
 # set up logging

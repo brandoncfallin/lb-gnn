@@ -351,15 +351,17 @@ if __name__ == "__main__":
     num_agents = 6
     tf = 30
     dt = 0.005
+    topology = "star"
+    trial_number = 0
 
     # plot paper figure
     plot_average_errors(
-        topology="ring",
-        trial_number=0,
+        topology=topology,
+        trial_number=trial_number,
         tf=tf,
         dt=dt,
         num_agents=num_agents,
         fig_dir="figures/",
     )
 
-    print("Results plotted for {topology} topology trial {trial_number}.")
+    print(f"Results plotted for {topology} topology trial {trial_number}.")

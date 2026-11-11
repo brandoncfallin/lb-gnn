@@ -131,8 +131,9 @@ def make_edge_set(num_agents: int, topology: str) -> list[tuple[int, int]]:
             edge_set.add(((i + 1) % num_agents, i))
     elif topology == "star":
         for i in range(num_agents):
-            edge_set.add((2, i))
-            edge_set.add((i, 2))
+            if i != 2:
+                edge_set.add((2, i))
+                edge_set.add((i, 2))
     elif topology == "path":
         for i in range(num_agents - 1):
             edge_set.add((i, i + 1))
@@ -200,55 +201,3 @@ def rnd_result(input_vals: list[np.float64]) -> list[float]:
     """
 
     return [round(float(val), 3) for val in input_vals]
-
-
-def get_k_hop_neighbors(
-    node_index: int, k: int, adjacency_matrix: jnp.ndarray
-) -> jnp.ndarray:
-    """
-    Get the k-hop neighbors of a given node in a graph that is represented by adjacency
-    matrix.
-
-    Args:
-        node_index (int): Active node index
-        k (int): Number of hops
-        adjacency_matrix (jnp.ndarray): Adjacency matrix [N x N] representing the graph
-    Returns:
-        jnp.ndarray: Indices of k-hop neighbors
-    """
-
-    if k == 0:
-        return jnp.array([node_index])
-    elif k == 1:
-        reachability_matrix = jnp.linalg.matrix_power(adjacency_matrix, k)
-        k_hop_neighbors = jnp.where(reachability_matrix[node_index] > 0)[0]
-        k_hop_neighbors = jnp.append(k_hop_neighbors, node_index)
-    else:
-        k_hop_neighbors = jnp.array([])
-        for hop in range(1, k + 1):
-            reachability_matrix = jnp.linalg.matrix_power(adjacency_matrix, hop)
-            neighbors_at_hop = jnp.where(reachability_matrix[node_index] > 0)[0]
-            k_hop_neighbors = jnp.union1d(k_hop_neighbors, neighbors_at_hop)
-
-    return k_hop_neighbors.astype(jnp.int32)
-
-
-def get_all_k_hop_neighbors(
-    node_index: int, adjacency_matrix: jnp.ndarray, num_layers: int
-) -> dict[int, jnp.ndarray]:
-    """
-    Helper function which runs `get_k_hop_neighbors()` for each GNN layer of a single agent
-
-    Args:
-        node_index (int): Active node index
-        adjacency_matrix (jnp.ndarray): Adjacency matrix [N x N] representing the graph
-        num_layers (int): Number of message-passing layers
-    """
-
-    neighbors_by_layer = {}
-    for layer in range(num_layers + 1):
-        k = num_layers - layer - 1
-        neighbors_by_layer[layer] = get_k_hop_neighbors(
-            node_index=node_index, k=k, adjacency_matrix=adjacency_matrix
-        )
-    return neighbors_by_layer
