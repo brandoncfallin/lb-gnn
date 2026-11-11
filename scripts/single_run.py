@@ -60,7 +60,7 @@ if __name__ == "__main__":
         # global neural network settings
         num_neurons_per_layer=8,
         num_mlp_layers=2,
-        num_message_passing_layers=2,  # placeholder, update for each architecture
+        num_message_passing_layers=1,  # placeholder, update for each architecture
         same_weights_at_each_agent=False,
         # neural network 1 settings (for observer)
         nn_1_num_inputs=6,

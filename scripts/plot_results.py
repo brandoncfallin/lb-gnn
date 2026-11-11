@@ -352,7 +352,7 @@ if __name__ == "__main__":
     tf = 30
     dt = 0.005
     topology = "switching"
-    trial_number = 0
+    trial_number = 6
 
     # plot paper figure
     plot_average_errors(
